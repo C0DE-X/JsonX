@@ -19,5 +19,14 @@ int main() {
   jsonx::Writer writer;
   writer(jObj, "output.json");
 
+  std::string buffer = "{\"somekey\": \"textvalue\", \"somevalue\": 234.3, \"morevalue\":35, \"Test\":true }";
+
+  jsonx::Objectify objectify;
+
+  jsonx::Object obj = objectify(buffer);
+
+  std::cout<<"Parsed object is:\n";
+  std::cout<< stringify(obj) << std::endl;
+
   return EXIT_SUCCESS;
 }
