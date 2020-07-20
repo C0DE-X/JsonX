@@ -9,8 +9,10 @@ add_executable(jsonx
     src/main.cpp
     src/JsonObject.cpp
     src/JsonX.cpp
+    src/Parser.cpp
     include/jsonx/JsonObject.h
     include/jsonx/JsonX.h
+    src/Parser.h
 )
 
 set_target_properties(jsonx PROPERTIES

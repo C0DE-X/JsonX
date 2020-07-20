@@ -11,22 +11,23 @@ int main() {
   jObj["object"]["name"] = "a name";
   jObj["object"]["descision"] = true;
   jObj["object"]["players"] = 64;
+  jObj["list"][0] = 64;
+  jObj["list"][1] = false;
+  jObj["list"][2] = "hello list";
+  jObj["list"][4] = "end of list";
 
 
-  jsonx::Stringify stringify;
-  std::cout<< stringify(jObj) << std::endl; 
+  std::cout<< jsonx::stringify(jObj) << std::endl; 
+  jsonx::write(jObj, "output.json");
 
-  jsonx::Writer writer;
-  writer(jObj, "output.json");
-
-  std::string buffer = "{\"somekey\": \"textvalue\", \"somevalue\": 234.3, \"morevalue\":35, \"Test\":true }";
+  std::string buffer = "{\"somekey\": \"textvalue\", \"somevalue\": 234.3, \"morevalue\":35, \"Test\":true, \"list\":[ true, 35.6 ] }";
 
   jsonx::Objectify objectify;
 
   jsonx::Object obj = objectify(buffer);
 
   std::cout<<"Parsed object is:\n";
-  std::cout<< stringify(obj) << std::endl;
+  std::cout<< jsonx::stringify(obj) << std::endl;
 
   return EXIT_SUCCESS;
 }
