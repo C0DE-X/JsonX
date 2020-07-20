@@ -4,6 +4,8 @@
 
 #include <optional>
 
+std::optional<jsonx::Object> operator "" _jsonx(const char* buffer, long unsigned int size);
+
 namespace jsonx {
 
 std::string stringify(Object const &obj);
