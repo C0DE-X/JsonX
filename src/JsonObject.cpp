@@ -63,6 +63,13 @@ Object &Object::operator=(double const &value) {
   return *this;
 }
 
+Object &Object::operator=(std::vector<Object> const& value)
+{
+  m_type = Type::ARRAY;
+  m_value = value;
+  return *this;
+}
+
 Object Object::operator[](std::string const &key) const {
   if (m_value.type() == typeid(jobject)) {
     auto const &map = std::any_cast<jobject const &>(m_value);

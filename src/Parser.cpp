@@ -4,23 +4,25 @@
 
 namespace jsonx {
 
-std::string Parser::operator()(Object const &obj) const { return parse(obj); }
+std::string ObjectParser::operator()(Object const &obj) const {
+  return parse(obj);
+}
 
-std::string Parser::parse(Object const &obj) {
+std::string ObjectParser::parse(Object const &obj) {
   static const std::map<Object::Type,
                         std::function<std::string(Object const &obj)>>
-      table{{Object::Type::OBJECT, &Parser::fromObject},
-            {Object::Type::ARRAY, &Parser::fromArray},
-            {Object::Type::BOOLEAN, &Parser::fromBoolean},
-            {Object::Type::NUMBER, &Parser::fromNumber},
-            {Object::Type::STRING, &Parser::fromString}};
+      table{{Object::Type::OBJECT, &ObjectParser::fromObject},
+            {Object::Type::ARRAY, &ObjectParser::fromArray},
+            {Object::Type::BOOLEAN, &ObjectParser::fromBoolean},
+            {Object::Type::NUMBER, &ObjectParser::fromNumber},
+            {Object::Type::STRING, &ObjectParser::fromString}};
 
   auto iter = table.find(obj.type());
 
   return iter != table.end() ? iter->second(obj) : std::string();
 }
 
-std::string Parser::fromObject(Object const &obj) {
+std::string ObjectParser::fromObject(Object const &obj) {
 
   std::string buffer;
 
@@ -36,7 +38,7 @@ std::string Parser::fromObject(Object const &obj) {
 
   return buffer;
 }
-std::string Parser::fromArray(Object const &obj) {
+std::string ObjectParser::fromArray(Object const &obj) {
 
   std::string buffer;
 
@@ -51,7 +53,7 @@ std::string Parser::fromArray(Object const &obj) {
 
   return buffer;
 }
-std::string Parser::fromNumber(Object const &obj) {
+std::string ObjectParser::fromNumber(Object const &obj) {
 
   std::string value = std::to_string(obj.toNumber());
   value.erase(value.find_last_not_of('0') + 1, std::string::npos);
@@ -59,10 +61,228 @@ std::string Parser::fromNumber(Object const &obj) {
 
   return value;
 }
-std::string Parser::fromBoolean(Object const &obj) {
+std::string ObjectParser::fromBoolean(Object const &obj) {
   return obj.toBoolean() ? "true" : "false";
 }
-std::string Parser::fromString(Object const &obj) {
+std::string ObjectParser::fromString(Object const &obj) {
   return "\"" + obj.toString() + "\"";
 }
+
+StringParser::StringIterator::StringIterator(std::string const &s)
+    : m_iter(s.begin()), m_end(s.end()) {}
+
+char StringParser::StringIterator::operator*() const {
+  return m_iter != m_end ? *m_iter : char();
+}
+
+bool StringParser::StringIterator::hasNext() const {
+  return m_iter != m_end && std::next(m_iter) != m_end;
+}
+
+bool StringParser::StringIterator::next() {
+  if (hasNext()) {
+    ++m_iter;
+    return true;
+  }
+  return false;
+}
+
+void StringParser::StringIterator::skipSpace() {
+  while (hasNext() && std::isspace(*m_iter))
+    next();
+}
+
+std::optional<Object>
+StringParser::operator()(std::string const &buffer) const {
+  StringIterator iter(buffer);
+  return parse(iter);
+}
+
+std::optional<Object> StringParser::parse(StringIterator &iter) {
+
+  static const std::map<char,
+                        std::function<std::optional<Object>(StringIterator &)>>
+      table{{'{', &StringParser::toObject},  {'[', &StringParser::toArray},
+            {'"', &StringParser::toString},  {'.', &StringParser::toNumber},
+            {'0', &StringParser::toNumber},  {'1', &StringParser::toNumber},
+            {'2', &StringParser::toNumber},  {'3', &StringParser::toNumber},
+            {'4', &StringParser::toNumber},  {'5', &StringParser::toNumber},
+            {'6', &StringParser::toNumber},  {'7', &StringParser::toNumber},
+            {'8', &StringParser::toNumber},  {'9', &StringParser::toNumber},
+            {'t', &StringParser::toBoolean}, {'f', &StringParser::toBoolean},
+            {'T', &StringParser::toBoolean}, {'F', &StringParser::toBoolean}};
+
+  std::optional<Object> obj;
+  iter.skipSpace();
+  if (iter.hasNext()) {
+    if (auto found = table.find(*iter); found != table.end())
+      obj = found->second(iter);
+  }
+  return obj;
+}
+
+std::optional<Object> StringParser::toObject(StringIterator &iter) {
+
+  std::optional<Object> obj;
+
+  if (*iter == '{') {
+    obj = Object();
+    bool lastKey = true;
+
+    iter.next();
+    iter.skipSpace();
+    while (*iter != '}') {
+      if (*iter == '"') {
+        lastKey = true;
+        std::string key;
+        while (iter.next() && *iter != '"')
+          key += *iter;
+
+        if (key.empty() || *iter != '"' || !iter.next()) {
+          obj.reset();
+          break;
+        }
+
+        iter.skipSpace();
+        if (*iter == ':') {
+          iter.next();
+          auto value = parse(iter);
+
+          if (value) {
+            obj->operator[](key) = value.value();
+          } else {
+            obj.reset();
+            break;
+          }
+
+        } else {
+          obj.reset();
+          break;
+        }
+
+        iter.skipSpace();
+        if (*iter == ',') {
+          lastKey = false;
+          iter.next();
+          iter.skipSpace();
+        }
+      } else {
+        obj.reset();
+        break;
+      }
+    }
+
+    if (*iter != '}' || !lastKey)
+      obj.reset();
+    else
+      iter.next();
+  }
+
+  return obj;
+}
+
+std::optional<Object> StringParser::toArray(StringIterator &iter) {
+
+  std::optional<Object> obj;
+
+  if (*iter == '[') {
+    obj = Object();
+    *obj = std::vector<Object>();
+    int counter = 0;
+    bool lastKey = true;
+
+    iter.next();
+    iter.skipSpace();
+    while (*iter != ']') {
+      lastKey = true;
+      auto value = parse(iter);
+      if (value) {
+        obj->operator[](counter) = value.value();
+        ++counter;
+      } else {
+        obj.reset();
+        break;
+      }
+
+      iter.skipSpace();
+      if (*iter == ',') {
+        lastKey = false;
+        iter.next();
+        iter.skipSpace();
+      }
+    }
+
+    if (*iter != ']' || !lastKey)
+      obj.reset();
+    else
+      iter.next();
+  }
+
+  return obj;
+}
+
+std::optional<Object> StringParser::toNumber(StringIterator &iter) {
+
+  std::optional<Object> obj;
+
+  std::string value;
+  while (iter.hasNext() && isdigit(*iter)) {
+    value += *iter;
+    iter.next();
+  }
+
+  if (*iter == '.') {
+    value += *iter;
+    while (iter.next() && isdigit(*iter))
+      value += *iter;
+  }
+
+  if (!value.empty()) {
+    obj = Object();
+    *obj = std::stod(value);
+  }
+
+  return obj;
+}
+
+std::optional<Object> StringParser::toBoolean(StringIterator &iter) {
+
+  std::optional<Object> obj;
+
+  std::string b;
+  while (iter.hasNext() && std::isalpha(*iter)) {
+    b += *iter;
+    iter.next();
+  }
+
+  std::transform(b.begin(), b.end(), b.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
+
+  if (b == "false") {
+    obj = Object();
+    *obj = false;
+  } else if (b == "true") {
+    obj = Object();
+    *obj = true;
+  }
+
+  return obj;
+}
+
+std::optional<Object> StringParser::toString(StringIterator &iter) {
+  std::optional<Object> obj;
+  if (*iter == '"') {
+    std::string value;
+    while (iter.next() && *iter != '"')
+      value += *iter;
+
+    if (*iter == '"') {
+      obj = Object();
+      *obj = value;
+      iter.next();
+    }
+  }
+  return obj;
+}
+
 } // namespace jsonx

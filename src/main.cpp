@@ -16,18 +16,21 @@ int main() {
   jObj["list"][2] = "hello list";
   jObj["list"][4] = "end of list";
 
-
-  std::cout<< jsonx::stringify(jObj) << std::endl; 
+  std::cout << jsonx::stringify(jObj) << std::endl;
   jsonx::write(jObj, "output.json");
 
-  std::string buffer = "{\"somekey\": \"textvalue\", \"somevalue\": 234.3, \"morevalue\":35, \"Test\":true, \"list\":[ true, 35.6 ] }";
+  std::string buffer =
+      "{\"somekey\": \"textvalue\", \"somevalue\": 234.3, \"morevalue\":35, "
+      "\"Test\":true, \"list\":[ true, 35.6 ] }";
 
-  jsonx::Objectify objectify;
+  auto obj = jsonx::objectify(buffer);
 
-  jsonx::Object obj = objectify(buffer);
-
-  std::cout<<"Parsed object is:\n";
-  std::cout<< jsonx::stringify(obj) << std::endl;
+  if (obj) {
+    std::cout << "Parsed object is:\n";
+    std::cout << jsonx::stringify(*obj) << std::endl;
+  } else {
+    std::cout << "Invalid Object" << std::endl;
+  }
 
   return EXIT_SUCCESS;
 }

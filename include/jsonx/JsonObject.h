@@ -30,6 +30,7 @@ public:
   Object &operator=(int const &value);
   Object &operator=(float const &value);
   Object &operator=(double const &value);
+  Object &operator=(std::vector<Object> const& value);
 
   Object operator[](std::string const &key) const;
   Object &operator[](std::string const &key);
