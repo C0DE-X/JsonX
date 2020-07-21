@@ -15,6 +15,7 @@ std::string ObjectParser::parse(Object const &obj) {
             {Object::Type::ARRAY, &ObjectParser::fromArray},
             {Object::Type::BOOLEAN, &ObjectParser::fromBoolean},
             {Object::Type::NUMBER, &ObjectParser::fromNumber},
+            {Object::Type::Null, &ObjectParser::fromNull},
             {Object::Type::STRING, &ObjectParser::fromString}};
 
   auto iter = table.find(obj.type());
@@ -68,6 +69,10 @@ std::string ObjectParser::fromString(Object const &obj) {
   return "\"" + obj.toString() + "\"";
 }
 
+std::string ObjectParser::fromNull(Object const &obj) {
+  return "null";
+}
+
 StringParser::StringIterator::StringIterator(std::string const &s)
     : m_iter(s.begin()), m_end(s.end()) {}
 
@@ -110,7 +115,8 @@ std::optional<Object> StringParser::parse(StringIterator &iter) {
             {'6', &StringParser::toNumber},  {'7', &StringParser::toNumber},
             {'8', &StringParser::toNumber},  {'9', &StringParser::toNumber},
             {'t', &StringParser::toBoolean}, {'f', &StringParser::toBoolean},
-            {'T', &StringParser::toBoolean}, {'F', &StringParser::toBoolean}};
+            {'T', &StringParser::toBoolean}, {'F', &StringParser::toBoolean},
+            {'N', &StringParser::toNull}, {'n', &StringParser::toNull}};
 
   std::optional<Object> obj;
   iter.skipSpace();
@@ -282,6 +288,28 @@ std::optional<Object> StringParser::toString(StringIterator &iter) {
       iter.next();
     }
   }
+  return obj;
+}
+
+
+std::optional<Object> StringParser::toNull(StringIterator &iter) {
+
+  std::optional<Object> obj;
+
+  std::string n;
+  while (iter.hasNext() && std::isalpha(*iter)) {
+    n += *iter;
+    iter.next();
+  }
+
+  std::transform(n.begin(), n.end(), n.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
+
+  if (n == "null") {
+    obj = Object();
+    *obj = nullptr;
+  }
+
   return obj;
 }
 

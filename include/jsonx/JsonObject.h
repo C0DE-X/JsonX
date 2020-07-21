@@ -14,7 +14,7 @@ class Object {
   using jarray = std::vector<Object>;
 
 public:
-  enum Type { STRING, NUMBER, BOOLEAN, OBJECT, ARRAY };
+  enum Type { Null, STRING, NUMBER, BOOLEAN, OBJECT, ARRAY };
 
   Object() = default;
   Object(Object const &other);
@@ -31,6 +31,7 @@ public:
   Object &operator=(float const &value);
   Object &operator=(double const &value);
   Object &operator=(std::vector<Object> const& value);
+  Object &operator=(std::nullptr_t nullp);
 
   Object operator[](std::string const &key) const;
   Object &operator[](std::string const &key);
@@ -38,6 +39,13 @@ public:
   Object &operator[](int const &index);
 
   Type type() const;
+  bool isObject() const;
+  bool isArray() const;
+  bool isString() const;
+  bool isNumber() const;
+  bool isBoolean() const;
+  bool isNull() const;
+
   size_t count() const;
   std::vector<std::string> keys() const;
   bool exists(std::string const &key) const;

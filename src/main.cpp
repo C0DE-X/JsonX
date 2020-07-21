@@ -15,6 +15,7 @@ int main() {
   jObj["list"][1] = false;
   jObj["list"][2] = "hello list";
   jObj["list"][4] = "end of list";
+  jObj["none"] = nullptr;
 
 
   std::string buffer = jsonx::stringify(jObj);
@@ -32,8 +33,22 @@ int main() {
     std::cout << "Invalid Object" << std::endl;
   }
 
-  obj = "{\"somekey\": \"textvalue\", \"somevalue\": 234.3, \"morevalue\":35, "
-      "\"Test\":true, \"list\":[ true, 35.6 ] }"_jsonx;
+  obj = "{"
+      "\"somekey\": \"textvalue\","
+      "\"somevalue\": 234.3,"
+      "\"morevalue\":35, "
+      "\"Test\":true,"
+      "\"list\":[ true, 35.6 ] "
+    "}"_jsonx;
+
+  if (obj) {
+    std::cout << "Parsed object is:\n";
+    std::cout << jsonx::stringify(*obj) << std::endl;
+  } else {
+    std::cout << "Invalid Object" << std::endl;
+  }
+
+  obj = jsonx::read("output.json");
 
   if (obj) {
     std::cout << "Parsed object is:\n";

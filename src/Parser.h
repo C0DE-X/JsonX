@@ -17,6 +17,7 @@ private:
   static std::string fromNumber(Object const &obj);
   static std::string fromBoolean(Object const &obj);
   static std::string fromString(Object const &obj);
+  static std::string fromNull(Object const &obj);
 };
 
 class StringParser {
@@ -48,6 +49,7 @@ private:
   static std::optional<Object> toNumber(StringIterator &iter);
   static std::optional<Object> toBoolean(StringIterator &iter);
   static std::optional<Object> toString(StringIterator &iter);
+  static std::optional<Object> toNull(StringIterator &iter);
 };
 
 } // namespace jsonx

@@ -63,10 +63,17 @@ Object &Object::operator=(double const &value) {
   return *this;
 }
 
-Object &Object::operator=(std::vector<Object> const& value)
-{
+Object &Object::operator=(std::vector<Object> const &value) {
   m_type = Type::ARRAY;
   m_value = value;
+  return *this;
+}
+
+
+Object &Object::operator=(std::nullptr_t nullp)
+{
+  m_type = Type::Null;
+  m_value = nullptr;
   return *this;
 }
 
@@ -124,6 +131,18 @@ size_t Object::count() const {
 
   return 0;
 }
+
+bool Object::isObject() const { return m_type == Type::OBJECT; }
+
+bool Object::isArray() const { return m_type == Type::ARRAY; }
+
+bool Object::isString() const { return m_type == Type::STRING; }
+
+bool Object::isNumber() const { return m_type == Type::NUMBER; }
+
+bool Object::isBoolean() const { return m_type == Type::BOOLEAN; }
+
+bool Object::isNull() const { return m_type == Type::Null; }
 
 std::vector<std::string> Object::keys() const {
   std::vector<std::string> keys;

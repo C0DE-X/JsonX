@@ -32,4 +32,20 @@ std::optional<Object> objectify(std::string const& buffer) {
   return parser(buffer);
 }
 
+std::optional<Object> read(std::string const path)
+{
+  std::string buffer;
+  std::ifstream myfile (path);
+  if (myfile.is_open())
+  {
+    while (getline(myfile,buffer));
+    myfile.close();
+  }
+
+  if(!buffer.empty())
+    return objectify(buffer);
+
+  return std::optional<Object>();
+}
+
 } // namespace jsonx
