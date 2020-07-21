@@ -15,8 +15,13 @@ int main() {
   jObj["list"][1] = false;
   jObj["list"][2] = "hello list";
   jObj["list"][4] = "end of list";
-  jObj["none"] = nullptr;
+  jObj["none"] = jsonx::null;
+  jObj["emptylist"] = jsonx::array();
 
+  std::cout<< jObj << std::endl;
+  std::cout<< jObj["test"] << std::endl;
+  std::cout<< jObj["list"] << std::endl;
+  std::cout<< jObj["object"] << std::endl;
 
   std::string buffer = jsonx::stringify(jObj);
 

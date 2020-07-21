@@ -19,6 +19,15 @@ public:
   Object() = default;
   Object(Object const &other);
   Object(Object &&other);
+  Object(std::string const &value);
+  Object(const char *value);
+  Object(bool const &value);
+  Object(short const &value);
+  Object(int const &value);
+  Object(float const &value);
+  Object(double const &value);
+  Object(std::vector<Object> const &value);
+  Object(std::nullptr_t value);
   ~Object() = default;
 
   Object &operator=(Object const &other);
@@ -30,13 +39,18 @@ public:
   Object &operator=(int const &value);
   Object &operator=(float const &value);
   Object &operator=(double const &value);
-  Object &operator=(std::vector<Object> const& value);
-  Object &operator=(std::nullptr_t nullp);
+  Object &operator=(std::vector<Object> const &value);
+  Object &operator=(std::nullptr_t value);
 
   Object operator[](std::string const &key) const;
   Object &operator[](std::string const &key);
   Object operator[](int const &index) const;
   Object &operator[](int const &index);
+
+  jobject::const_iterator begin() const;
+  jobject::iterator begin();
+  jobject::const_iterator end() const;
+  jobject::iterator end();
 
   Type type() const;
   bool isObject() const;
@@ -48,7 +62,10 @@ public:
 
   size_t count() const;
   std::vector<std::string> keys() const;
+  std::vector<int> sequence() const;
   bool exists(std::string const &key) const;
+  void add(std::string const& key, Object const& obj);
+  void add(Object const& obj);
   void remove(std::string const &key);
   void remove(int const &index);
   void clear();

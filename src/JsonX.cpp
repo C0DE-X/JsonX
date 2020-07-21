@@ -4,13 +4,21 @@
 #include <fstream>
 #include <jsonx/JsonX.h>
 
-std::optional<jsonx::Object> operator "" _jsonx(const char* buffer, long unsigned int size)
-{
+std::optional<jsonx::Object> operator"" _jsonx(const char *buffer,
+                                               long unsigned int size) {
   std::string s(buffer, size);
   return jsonx::objectify(s);
 }
 
+std::ostream& operator<<(std::ostream& os, const jsonx::Object& obj)
+{
+  os << jsonx::stringify(obj);
+  return os;
+}
+
 namespace jsonx {
+
+const Object array() { return std::vector<Object>(); }
 
 std::string stringify(Object const &obj) {
   ObjectParser parser;
@@ -27,22 +35,21 @@ void write(Object const &obj, std::string const path) {
   }
 }
 
-std::optional<Object> objectify(std::string const& buffer) {
+std::optional<Object> objectify(std::string const &buffer) {
   StringParser parser;
   return parser(buffer);
 }
 
-std::optional<Object> read(std::string const path)
-{
+std::optional<Object> read(std::string const path) {
   std::string buffer;
-  std::ifstream myfile (path);
-  if (myfile.is_open())
-  {
-    while (getline(myfile,buffer));
+  std::ifstream myfile(path);
+  if (myfile.is_open()) {
+    while (getline(myfile, buffer))
+      ;
     myfile.close();
   }
 
-  if(!buffer.empty())
+  if (!buffer.empty())
     return objectify(buffer);
 
   return std::optional<Object>();
