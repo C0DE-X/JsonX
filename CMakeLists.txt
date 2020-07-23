@@ -2,11 +2,7 @@ cmake_minimum_required(VERSION 3.9)
 
 project(jsonx LANGUAGES CXX)
 
-#add_library(jsonx SHARED
-#)
-
-add_executable(jsonx
-    src/main.cpp
+add_library(jsonx SHARED
     src/JsonObject.cpp
     src/JsonX.cpp
     src/Parser.cpp

@@ -157,7 +157,7 @@ If the current object is an array type. There are different types of operators a
   jObj[0] = 3.5; //3.5 at index 0
   jObj[2] = "Hello World"; //"Hello World" at index 2
   //--> jObj[1] = jsonx::Object();
-  json::Object numberObject = jObj[0]; //assign object on index 0
+  json::Object numberObject = jObj[0]; //assign object from index 0
   ```
 - void add(Object const& obj)
 
