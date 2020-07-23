@@ -245,6 +245,14 @@ void Object::add(Object const &obj) {
   array.push_back(obj);
 }
 
+void Object::remove(std::string const &key) {
+  if (m_value.type() == typeid(jobject)) {
+    auto &map = std::any_cast<jobject &>(m_value);
+    if (auto found = map.find(key); found != map.end())
+      map.erase(found);
+  }
+}
+
 void Object::remove(const int &index) {
   if (m_value.type() == typeid(jarray)) {
     auto &array = std::any_cast<jarray &>(m_value);
