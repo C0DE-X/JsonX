@@ -10,7 +10,7 @@ std::ostream& operator<<(std::ostream& os, const jsonx::Object& obj);
 namespace jsonx {
 
 constexpr nullptr_t null { nullptr };
-const Object array();
+const Object Array();
 
 std::string stringify(Object const &obj);
 void write(Object const &obj, std::string const path);

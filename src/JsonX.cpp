@@ -18,7 +18,7 @@ std::ostream& operator<<(std::ostream& os, const jsonx::Object& obj)
 
 namespace jsonx {
 
-const Object array() { return std::vector<Object>(); }
+const Object Array() { return std::vector<Object>(); }
 
 std::string stringify(Object const &obj) {
   ObjectParser parser;

@@ -8,12 +8,12 @@ To simple create an empty jsonobject use following syntax:
   jsonx::Object jObj;
 ```
 
-### Loading json
+## Loading json
 
-A json object can be read from file or via string. The jsonx::read function can be used to read from a file. To use a string as initialization the method jsonx::objectify or the literal _jsonx can be used.
+A json object can be read from file or via string. The jsonx::read function can be used to read from a file. To use a string as initialization the method jsonx::objectify or the literal _jsonx can be used. The output is an optional variable. In case there is an error of the input this object is not valid.
 
 ```cpp
-jsonx::Object jObj;
+std::optional<jsonx::Object> jObj;
 
 std::string jsonString = "{"
       "\"somekey\": \"textvalue\","
@@ -38,8 +38,23 @@ jObj ="{"
       "\"list\":[ true, 35.6 ] "
       "}"_jsonx;
 ```
+## Saving json
 
-### Assigning values
+A json object can be written to a file or a string. The jsonx::write function can be used to write to file. To use a string as destination the method jsonx::stringify can be used. Also the streaming operator is overloaded to stream a json object.
+
+```cpp
+jsonx::Object jObj;
+
+//to file
+jsonx::write(jObj, "output.json");
+
+//objectify
+std::string json = jsonx::stringify(jObj);
+
+//streaming operator
+std::cout<< jObj << std::endl;
+```
+## Assigning values
 
 The jsonobject automatically transforms to the type by assigning a value. The preused type gets overwritten.
 
@@ -52,7 +67,7 @@ The jsonobject automatically transforms to the type by assigning a value. The pr
   jObj = "Hello World!";   //string
   jObj = jsonx::null;      //null
   jObj = jsonx::Object();  //object
-  jObj = jsonx::array();   //array
+  jObj = jsonx::Array();   //array
 ```
 
 Values can also be directly set via keypath or index. In case an index is set the object automatically gets transformed to an array or in case of a key to an object. If an index doesn't get set it is automatically set to an empty jsonobject, as in the follwing example. Index 0,1,3 are set and 2 is left so it is an empty object.
@@ -86,7 +101,7 @@ Output:
 }
 ```
 
-#### Access type object
+## Access type object
 
 If the current object is an object type. There are different types of operators and functions that can be used to access its properties.
 
@@ -128,7 +143,7 @@ If the current object is an object type. There are different types of operators 
     
   It returns the count of the keys in case the object is of type object, otherwise 0;
 
-#### Access type vector
+## Access type vector
 If the current object is an array type. There are different types of operators and functions that can be used to access its properties.
 
 - index operator with int 
@@ -164,4 +179,55 @@ If the current object is an array type. There are different types of operators a
     
   It returns the size of the array in case the object is of type array, otherwise 0;
 
-### Object types
+## Object types
+
+The jsonx library covers and handles all possible json datatypes and values:
+  - Object &rarr; jsonx::Object::Type::Object
+  - Array &rarr; jsonx::Object::Type::ARRAY
+  - Number &rarr; jsonx::Object::Type::NUMBER
+  - Boolean &rarr; jsonx::Object::Type::BOOLEAN
+  - String &rarr; jsonx::Object::Type::STRING
+  - null &rarr; jsonx::Object::Type::Null
+  
+There are convert and check function to be used on an object for each type.
+
+```cpp
+
+jsonx::Object jObj;
+
+std::cout << jObj.type() << std::endl; //returns TYPE::OBJECT
+std::cout << jObj.isObject() << std::endl; //returns true
+std::string s = jObj.toString(); // s = "";
+
+jObj = jsonx::Array();
+std::cout << jObj.isArray() << std::endl; //returns true
+std::cout << jObj.isObject() << std::endl; //returns false
+
+jObj = "Hello World";
+std::cout << jObj.isString() << std::endl; //returns true
+std::cout << jObj.isArray() << std::endl; //returns false
+s = jObj.toString(); // s = "Hello World";
+
+jObj = 43;
+std::cout << jObj.isNumber() << std::endl; //returns true
+std::cout << jObj.isBoolean() << std::endl; //returns false
+double d = jObj.toNumber(); //d = 43;
+std::vector<Object> v = jObj.toArray(); // v is empty
+
+jObj = true;
+std::cout << jObj.isBoolean() << std::endl; //returns true
+std::cout << jObj.isNumber() << std::endl; //returns false
+bool b = jObj.toBoolean(); // b = true
+
+jObj = jsonx::null;
+std::cout << jObj.isNull() << std::endl; //returns true
+std::cout << jObj.isNumber() << std::endl; //returns false
+
+//Can also be directly used on key path
+
+jObj["Key"]["to"]["Number"] = 23.456;
+jObj["Key"]["to"]["String"] = "Hello World";
+d = jObj["Key"]["to"]["Number"].toNumber(); // d = 23.456
+s = jObj["Key"]["to"]["String"].toString(); // s = "Hello World"
+b = jObj["Key"]["to"]["String"].toBool(); // b = bool()
+```
