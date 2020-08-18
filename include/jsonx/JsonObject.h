@@ -84,6 +84,9 @@ public:
   Object &operator=(std::vector<Object> const &value);
   Object &operator=(std::nullptr_t value);
 
+  bool operator==(const Object &rhs) const;
+  bool operator!=(const Object &rhs) const;
+
   Object operator[](std::string const &key) const;
   Object &operator[](std::string const &key);
   Object operator[](int const &index) const;

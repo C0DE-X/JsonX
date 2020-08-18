@@ -157,6 +157,63 @@ Object &Object::operator=(std::nullptr_t value) {
   return *this;
 }
 
+bool Object::operator==(const Object &rhs) const {
+
+  if (this == &rhs)
+    return true;
+
+  if (m_type == rhs.m_type) {
+
+    switch (m_type) {
+    case Type::STRING:
+      return std::any_cast<std::string>(m_value) ==
+             std::any_cast<std::string>(rhs.m_value);
+    case Type::BOOLEAN:
+      return std::any_cast<bool>(m_value) == std::any_cast<bool>(rhs.m_value);
+    case Type::NUMBER:
+      return std::any_cast<double>(m_value) ==
+             std::any_cast<double>(rhs.m_value);
+    case Type::Null:
+      return true;
+    case Type::OBJECT: {
+
+      if (count() != rhs.count())
+        return false;
+
+      auto keys = this->keys();
+      auto const &map = std::any_cast<jobject const &>(m_value);
+      auto const &rhsmap = std::any_cast<jobject const &>(rhs.m_value);
+      for (auto &k : keys) {
+        if (!rhs.exists(k) || (map.at(k) != rhsmap.at(k)))
+          return false;
+      }
+      return true;
+    }
+    case Type::ARRAY: {
+
+      if (count() != rhs.count())
+        return false;
+
+      auto sequence = this->sequence();
+      auto const &array = std::any_cast<jarray const &>(m_value);
+      auto const &rhsarray = std::any_cast<jarray const &>(rhs.m_value);
+
+      for (auto &i : sequence) {
+        if (array[i] != rhsarray[i])
+          return false;
+      }
+      return true;
+    }
+    default:
+      break;
+    }
+  }
+
+  return false;
+}
+
+bool Object::operator!=(const Object &rhs) const { return !operator==(rhs); }
+
 Object Object::operator[](std::string const &key) const {
   if (m_value.type() == typeid(jobject)) {
     auto const &map = std::any_cast<jobject const &>(m_value);
