@@ -189,7 +189,12 @@ The jsonx library covers and handles all possible json datatypes and values:
   - String &rarr; jsonx::Object::Type::STRING
   - null &rarr; jsonx::Object::Type::Null
   
-There are convert and check function to be used on an object for each type.
+There are convert and check function to be used on an object for each type. Also types are getting converted if possible.
+Examples:
+  - string "43" is getting converted with toNumber to double 43
+  - string "hello world" is getting converted with toBoolean to true as the string is not empty
+  - double 2.5 is getting converted with toBoolean to true as the value is greater than 0
+
 
 ```cpp
 
@@ -197,7 +202,7 @@ jsonx::Object jObj;
 
 std::cout << jObj.type() << std::endl; //returns TYPE::OBJECT
 std::cout << jObj.isObject() << std::endl; //returns true
-std::string s = jObj.toString(); // s = "";
+std::string s = jObj.toString(); // s = {};
 
 jObj = jsonx::Array();
 std::cout << jObj.isArray() << std::endl; //returns true
@@ -212,12 +217,15 @@ jObj = 43;
 std::cout << jObj.isNumber() << std::endl; //returns true
 std::cout << jObj.isBoolean() << std::endl; //returns false
 double d = jObj.toNumber(); //d = 43;
+bool b = jObj.toBoolean(); // b = true
+s = jObj.toString(); // s = "43";
 std::vector<Object> v = jObj.toArray(); // v is empty
 
 jObj = true;
 std::cout << jObj.isBoolean() << std::endl; //returns true
 std::cout << jObj.isNumber() << std::endl; //returns false
-bool b = jObj.toBoolean(); // b = true
+b = jObj.toBoolean(); // b = true
+s = jObj.toString(); // s = "true"
 
 jObj = jsonx::null;
 std::cout << jObj.isNull() << std::endl; //returns true
@@ -225,9 +233,9 @@ std::cout << jObj.isNumber() << std::endl; //returns false
 
 //Can also be directly used on key path
 
-jObj["Key"]["to"]["Number"] = 23.456;
-jObj["Key"]["to"]["String"] = "Hello World";
-d = jObj["Key"]["to"]["Number"].toNumber(); // d = 23.456
-s = jObj["Key"]["to"]["String"].toString(); // s = "Hello World"
-b = jObj["Key"]["to"]["String"].toBool(); // b = bool()
+jObj["Key"]["has"]["Number"] = 23.456;
+jObj["Key"]["has"]["String"] = "Hello World";
+d = jObj["Key"]["has"]["Number"].toNumber(); // d = 23.456
+s = jObj["Key"]["has"]["String"].toString(); // s = "Hello World"
+b = jObj["Key"]["has"]["String"].toBool(); // true because the string is not empty
 ```
