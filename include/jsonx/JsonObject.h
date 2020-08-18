@@ -1,20 +1,62 @@
 #pragma once
 
 #include <any>
-#include <map>
 #include <string>
 #include <type_traits>
+#include <unordered_map>
 #include <vector>
 
 namespace jsonx {
 
+class JsonIterator;
+
 class Object {
 
-  using jobject = std::map<std::string, Object>;
+  using jobject = std::unordered_map<std::string, Object>;
   using jarray = std::vector<Object>;
 
 public:
   enum Type { Null, STRING, NUMBER, BOOLEAN, OBJECT, ARRAY };
+
+  class iterator {
+    friend class Object;
+
+  public:
+    iterator operator++();
+    iterator operator++(int junk);
+    Object &operator*();
+    std::string first() const;
+    Object &second();
+    bool operator==(const iterator &rhs) const;
+    bool operator!=(const iterator &rhs) const;
+
+  private:
+    iterator(Object &ref);
+    iterator(Object &ref, unsigned index);
+
+    Object &m_ref;
+    unsigned m_index;
+  };
+
+  class const_iterator {
+    friend class Object;
+
+  public:
+    const_iterator operator++();
+    const_iterator operator++(int junk);
+    Object operator*() const;
+    std::string first() const;
+    Object second() const;
+    bool operator==(const const_iterator &rhs) const;
+    bool operator!=(const const_iterator &rhs) const;
+
+  private:
+    const_iterator(Object const &ref);
+    const_iterator(Object const &ref, unsigned index);
+
+    Object const &m_ref;
+    unsigned m_index;
+  };
 
   Object() = default;
   Object(Object const &other);
@@ -42,15 +84,18 @@ public:
   Object &operator=(std::vector<Object> const &value);
   Object &operator=(std::nullptr_t value);
 
+  bool operator==(const Object &rhs) const;
+  bool operator!=(const Object &rhs) const;
+
   Object operator[](std::string const &key) const;
   Object &operator[](std::string const &key);
   Object operator[](int const &index) const;
   Object &operator[](int const &index);
 
-  jobject::const_iterator begin() const;
-  jobject::iterator begin();
-  jobject::const_iterator end() const;
-  jobject::iterator end();
+  Object::const_iterator begin() const;
+  Object::iterator begin();
+  Object::const_iterator end() const;
+  Object::iterator end();
 
   Type type() const;
   bool isObject() const;
@@ -62,10 +107,11 @@ public:
 
   size_t count() const;
   std::vector<std::string> keys() const;
+  std::string key(unsigned index) const;
   std::vector<int> sequence() const;
   bool exists(std::string const &key) const;
-  void add(std::string const& key, Object const& obj);
-  void add(Object const& obj);
+  void add(std::string const &key, Object const &obj);
+  void add(Object const &obj);
   void remove(std::string const &key);
   void remove(int const &index);
   void clear();

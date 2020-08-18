@@ -1,7 +1,65 @@
 #include <jsonx/JsonObject.h>
+#include <jsonx/JsonX.h>
 
 namespace jsonx {
 
+/******************************************
+Object::iterator
+******************************************/
+
+Object::iterator::iterator(Object &ref) : m_ref(ref), m_index(0) {}
+Object::iterator::iterator(Object &ref, unsigned index)
+    : m_ref(ref), m_index(index) {}
+Object::iterator Object::iterator::operator++() {
+  iterator i = *this;
+  ++m_index;
+  return i;
+}
+Object::iterator Object::iterator::operator++(int junk) {
+  ++m_index;
+  return *this;
+}
+Object &Object::iterator::operator*() { return second(); }
+std::string Object::iterator::first() const { return m_ref.key(m_index); }
+Object &Object::iterator::second() { return m_ref[m_ref.key(m_index)]; }
+bool Object::iterator::operator==(const iterator &rhs) const {
+  return &m_ref == &rhs.m_ref && m_index == rhs.m_index;
+}
+bool Object::iterator::operator!=(const iterator &rhs) const {
+  return &m_ref != &rhs.m_ref || m_index != rhs.m_index;
+}
+
+/******************************************
+Object::const_iterator
+******************************************/
+Object::const_iterator::const_iterator(Object const &ref)
+    : m_ref(ref), m_index(0) {}
+Object::const_iterator::const_iterator(Object const &ref, unsigned index)
+    : m_ref(ref), m_index(index) {}
+Object::const_iterator Object::const_iterator::operator++() {
+  const_iterator i = *this;
+  ++m_index;
+  return i;
+}
+Object::const_iterator Object::const_iterator::operator++(int junk) {
+  ++m_index;
+  return *this;
+}
+Object Object::const_iterator::operator*() const { return second(); }
+std::string Object::const_iterator::first() const { return m_ref.key(m_index); }
+Object Object::const_iterator::second() const {
+  return m_ref[m_ref.key(m_index)];
+}
+bool Object::const_iterator::operator==(const const_iterator &rhs) const {
+  return &m_ref == &rhs.m_ref && m_index == rhs.m_index;
+}
+bool Object::const_iterator::operator!=(const const_iterator &rhs) const {
+  return &m_ref != &rhs.m_ref || m_index != rhs.m_index;
+}
+
+/******************************************
+Object
+******************************************/
 Object::Object(Object const &other)
     : m_value(other.m_value), m_type(other.m_type) {}
 
@@ -99,6 +157,63 @@ Object &Object::operator=(std::nullptr_t value) {
   return *this;
 }
 
+bool Object::operator==(const Object &rhs) const {
+
+  if (this == &rhs)
+    return true;
+
+  if (m_type == rhs.m_type) {
+
+    switch (m_type) {
+    case Type::STRING:
+      return std::any_cast<std::string>(m_value) ==
+             std::any_cast<std::string>(rhs.m_value);
+    case Type::BOOLEAN:
+      return std::any_cast<bool>(m_value) == std::any_cast<bool>(rhs.m_value);
+    case Type::NUMBER:
+      return std::any_cast<double>(m_value) ==
+             std::any_cast<double>(rhs.m_value);
+    case Type::Null:
+      return true;
+    case Type::OBJECT: {
+
+      if (count() != rhs.count())
+        return false;
+
+      auto keys = this->keys();
+      auto const &map = std::any_cast<jobject const &>(m_value);
+      auto const &rhsmap = std::any_cast<jobject const &>(rhs.m_value);
+      for (auto &k : keys) {
+        if (!rhs.exists(k) || (map.at(k) != rhsmap.at(k)))
+          return false;
+      }
+      return true;
+    }
+    case Type::ARRAY: {
+
+      if (count() != rhs.count())
+        return false;
+
+      auto sequence = this->sequence();
+      auto const &array = std::any_cast<jarray const &>(m_value);
+      auto const &rhsarray = std::any_cast<jarray const &>(rhs.m_value);
+
+      for (auto &i : sequence) {
+        if (array[i] != rhsarray[i])
+          return false;
+      }
+      return true;
+    }
+    default:
+      break;
+    }
+  }
+
+  return false;
+}
+
+bool Object::operator!=(const Object &rhs) const { return !operator==(rhs); }
+
 Object Object::operator[](std::string const &key) const {
   if (m_value.type() == typeid(jobject)) {
     auto const &map = std::any_cast<jobject const &>(m_value);
@@ -138,36 +253,23 @@ Object &Object::operator[](int const &index) {
   return array.at(index);
 }
 
-std::map<std::string, Object>::const_iterator Object::begin() const {
+Object::const_iterator Object::begin() const { return const_iterator(*this); }
+Object::iterator Object::begin() { return iterator(*this); }
+
+Object::const_iterator Object::end() const {
   if (m_value.type() == typeid(jobject)) {
     auto const &map = std::any_cast<jobject const &>(m_value);
-    return map.begin();
+    return const_iterator(*this, map.size());
   }
-  return jobject::const_iterator();
+  return const_iterator(*this, 0);
 }
 
-std::map<std::string, Object>::iterator Object::begin() {
+Object::iterator Object::end() {
   if (m_value.type() == typeid(jobject)) {
     auto &map = std::any_cast<jobject &>(m_value);
-    return map.begin();
+    return iterator(*this, map.size());
   }
-  return jobject::iterator();
-}
-
-std::map<std::string, Object>::const_iterator Object::end() const {
-  if (m_value.type() == typeid(jobject)) {
-    auto const &map = std::any_cast<jobject const &>(m_value);
-    return map.end();
-  }
-  return jobject::const_iterator();
-}
-
-std::map<std::string, Object>::iterator Object::end() {
-  if (m_value.type() == typeid(jobject)) {
-    auto &map = std::any_cast<jobject &>(m_value);
-    return map.end();
-  }
-  return jobject::iterator();
+  return iterator(*this, 0);
 }
 
 Object::Type Object::type() const { return m_type; }
@@ -206,6 +308,18 @@ std::vector<std::string> Object::keys() const {
   }
 
   return keys;
+}
+
+std::string Object::key(unsigned index) const {
+  std::string key;
+  if (m_value.type() == typeid(jobject)) {
+    auto const &map = std::any_cast<jobject const &>(m_value);
+    for (auto &e : map)
+      if (index-- == 0)
+        key = e.first;
+  }
+
+  return key;
 }
 
 std::vector<int> Object::sequence() const {
@@ -268,24 +382,82 @@ void Object::clear() {
 
 std::string Object::toString() const {
 
+  std::string s;
+
   switch (m_type) {
   case Type::STRING:
-    return std::any_cast<std::string>(m_value);
+    s = std::any_cast<std::string>(m_value);
+    break;
   case Type::BOOLEAN:
-    return std::to_string(std::any_cast<bool>(m_value));
+    s = std::to_string(std::any_cast<bool>(m_value));
+    break;
   case Type::NUMBER:
-    return std::to_string(std::any_cast<double>(m_value));
+    s = std::to_string(std::any_cast<double>(m_value));
+    break;
+  case Type::Null:
+    s = "null";
+    break;
+  case Type::OBJECT:
+    s = stringify(*this);
+    break;
+  case Type::ARRAY:
+    s = stringify(*this);
+    break;
   default:
-    return std::string();
+    break;
   }
+
+  return s;
 }
 
 bool Object::toBoolean() const {
-  return m_type == Type::BOOLEAN ? std::any_cast<bool>(m_value) : bool();
+
+  bool b;
+
+  switch (m_type) {
+  case Type::BOOLEAN:
+    b = std::any_cast<bool>(m_value);
+    break;
+  case Type::NUMBER:
+    b = std::any_cast<double>(m_value) > 0;
+    break;
+  case Type::STRING:
+    b = !std::any_cast<std::string>(m_value).empty();
+    break;
+  case Type::OBJECT:
+    b = !std::any_cast<jobject const &>(m_value).empty();
+    break;
+  case Type::ARRAY:
+    b = !std::any_cast<jarray const &>(m_value).empty();
+    break;
+  case Type::Null:
+    b = false;
+    break;
+  default:
+    break;
+  }
+  return b;
 }
 
 double Object::toNumber() const {
-  return m_type == Type::NUMBER ? std::any_cast<double>(m_value) : double();
+
+  double d;
+
+  switch (m_type) {
+  case Type::BOOLEAN:
+    d = std::any_cast<bool>(m_value);
+    break;
+  case Type::NUMBER:
+    d = std::any_cast<double>(m_value);
+    break;
+  case Type::STRING:
+    d = std::stod(std::any_cast<std::string>(m_value).c_str());
+    break;
+  default:
+    break;
+  }
+
+  return d;
 }
 
 std::vector<Object> Object::toArray() const {
