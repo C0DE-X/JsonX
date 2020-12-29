@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.9)
 
+option(BUILD_SAMPLE "Enable building samples" ON)
+
 project(jsonx LANGUAGES CXX)
 
 add_library(jsonx SHARED
@@ -21,3 +23,7 @@ set_target_properties(jsonx PROPERTIES
 
 target_include_directories(jsonx PRIVATE src)
 target_include_directories(jsonx PUBLIC include)
+
+if(BUILD_SAMPLE)
+    add_subdirectory(sample)
+endif()

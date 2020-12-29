@@ -194,7 +194,7 @@ std::optional<Object> StringParser::toArray(StringIterator &iter) {
   if (*iter == '[') {
     obj = Object();
     *obj = std::vector<Object>();
-    int counter = 0;
+    size_t counter = 0;
     bool lastKey = true;
 
     iter.next();

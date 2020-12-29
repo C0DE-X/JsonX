@@ -36,6 +36,11 @@ int main() {
     std::cout << "Invalid Object" << std::endl;
   }
 
+  if(obj == jObj)
+  {
+      std::cout << "obj and jObj are the same" << std::endl;
+  }
+
   obj = "{"
       "\"somekey\": \"textvalue\","
       "\"somevalue\": 234.3,"
