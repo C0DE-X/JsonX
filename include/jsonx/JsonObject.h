@@ -8,8 +8,6 @@
 
 namespace jsonx {
 
-class JsonIterator;
-
 class Object {
 
   using jobject = std::unordered_map<std::string, Object>;
@@ -22,16 +20,16 @@ public:
     friend class Object;
 
   public:
-    iterator operator++();
-    iterator operator++(int junk);
+    iterator& operator++();
+    iterator operator++(int);
     Object &operator*();
-    std::string first() const;
+    [[nodiscard]] std::string first() const;
     Object &second();
     bool operator==(const iterator &rhs) const;
     bool operator!=(const iterator &rhs) const;
 
   private:
-    iterator(Object &ref);
+    explicit iterator(Object &ref);
     iterator(Object &ref, unsigned index);
 
     Object &m_ref;
@@ -42,16 +40,16 @@ public:
     friend class Object;
 
   public:
-    const_iterator operator++();
-    const_iterator operator++(int junk);
+    const_iterator& operator++();
+    const_iterator operator++(int);
     Object operator*() const;
-    std::string first() const;
-    Object second() const;
+    [[nodiscard]] std::string first() const;
+    [[nodiscard]] Object second() const;
     bool operator==(const const_iterator &rhs) const;
     bool operator!=(const const_iterator &rhs) const;
 
   private:
-    const_iterator(Object const &ref);
+    explicit const_iterator(Object const &ref);
     const_iterator(Object const &ref, unsigned index);
 
     Object const &m_ref;
@@ -59,21 +57,21 @@ public:
   };
 
   Object() = default;
-  Object(Object const &other);
-  Object(Object &&other);
-  Object(std::string const &value);
-  Object(const char *value);
-  Object(bool const &value);
-  Object(short const &value);
-  Object(int const &value);
-  Object(float const &value);
-  Object(double const &value);
-  Object(std::vector<Object> const &value);
-  Object(std::nullptr_t value);
+  Object(Object const &other) = default;
+  Object(Object &&other) noexcept ;
+  explicit Object(std::string const &value);
+  explicit Object(const char *value);
+  explicit Object(bool const &value);
+  explicit Object(short const &value);
+  explicit Object(int const &value);
+  explicit Object(float const &value);
+  explicit Object(double const &value);
+  explicit Object(std::vector<Object> const &value);
+  explicit Object(std::nullptr_t);
   ~Object() = default;
 
-  Object &operator=(Object const &other);
-  Object &operator=(Object &&other);
+  Object &operator=(Object const &other) = default;
+  Object &operator=(Object &&other) noexcept ;
   Object &operator=(std::string const &value);
   Object &operator=(const char *value);
   Object &operator=(bool const &value);
@@ -82,44 +80,44 @@ public:
   Object &operator=(float const &value);
   Object &operator=(double const &value);
   Object &operator=(std::vector<Object> const &value);
-  Object &operator=(std::nullptr_t value);
+  Object &operator=(std::nullptr_t);
 
   bool operator==(const Object &rhs) const;
   bool operator!=(const Object &rhs) const;
 
   Object operator[](std::string const &key) const;
   Object &operator[](std::string const &key);
-  Object operator[](int const &index) const;
-  Object &operator[](int const &index);
+  Object operator[](size_t const &index) const;
+  Object &operator[](size_t const &index);
 
-  Object::const_iterator begin() const;
+  [[nodiscard]] Object::const_iterator begin() const;
   Object::iterator begin();
-  Object::const_iterator end() const;
+  [[nodiscard]] Object::const_iterator end() const;
   Object::iterator end();
 
-  Type type() const;
-  bool isObject() const;
-  bool isArray() const;
-  bool isString() const;
-  bool isNumber() const;
-  bool isBoolean() const;
-  bool isNull() const;
+  [[nodiscard]] Type type() const;
+  [[nodiscard]] bool isObject() const;
+  [[nodiscard]] bool isArray() const;
+  [[nodiscard]] bool isString() const;
+  [[nodiscard]] bool isNumber() const;
+  [[nodiscard]] bool isBoolean() const;
+  [[nodiscard]] bool isNull() const;
 
-  size_t count() const;
-  std::vector<std::string> keys() const;
-  std::string key(unsigned index) const;
-  std::vector<int> sequence() const;
-  bool exists(std::string const &key) const;
+  [[nodiscard]] size_t count() const;
+  [[nodiscard]] std::vector<std::string> keys() const;
+  [[nodiscard]] std::string key(unsigned index) const;
+  [[nodiscard]] std::vector<int> sequence() const;
+  [[nodiscard]] bool exists(std::string const &key) const;
   void add(std::string const &key, Object const &obj);
   void add(Object const &obj);
   void remove(std::string const &key);
   void remove(int const &index);
   void clear();
 
-  std::string toString() const;
-  bool toBoolean() const;
-  double toNumber() const;
-  std::vector<Object> toArray() const;
+  [[nodiscard]] std::string toString() const;
+  [[nodiscard]] bool toBoolean() const;
+  [[nodiscard]] double toNumber() const;
+  [[nodiscard]] std::vector<Object> toArray() const;
 
 private:
   std::any m_value{jobject()};

@@ -25,12 +25,12 @@ class StringParser {
   class StringIterator
   {
       public:
-      StringIterator(std::string const& s);
+      explicit StringIterator(std::string const& s);
       ~StringIterator() = default;
 
       char operator*() const;
 
-      bool hasNext() const;
+      [[nodiscard]] bool hasNext() const;
       bool next();
       void skipSpace();
 

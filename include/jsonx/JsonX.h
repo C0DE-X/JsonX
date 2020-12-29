@@ -9,12 +9,12 @@ std::ostream& operator<<(std::ostream& os, const jsonx::Object& obj);
 
 namespace jsonx {
 
-constexpr nullptr_t null { nullptr };
-const Object Array();
+constexpr std::nullptr_t null { nullptr };
+static Object Array() { return Object(std::vector<Object>()); }
 
 std::string stringify(Object const &obj);
-void write(Object const &obj, std::string const path);
+void write(Object const &obj, std::string const& path);
 std::optional<Object> objectify(std::string const& buffer);
-std::optional<Object> read(std::string const path);
+std::optional<Object> read(std::string const& path);
 
 } // namespace jsonx
